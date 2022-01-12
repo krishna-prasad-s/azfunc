@@ -17,8 +17,8 @@ const validateJwt = async (req, context) => {
         }
 
         try {
-                jwt.verify(token, getSigningKeys, validationOptions);
-                return true;
+            jwt.verify(token, getSigningKeys, validationOptions);
+            return true;
         } catch (err) {
             context.log(err);
             return false;
@@ -34,7 +34,7 @@ const getSigningKeys = (header, callback) => {
     });
 
     client.getSigningKey(header.kid, function (err, key) {
-        var signingKey = key.publicKey || key.rsaPublicKey;
+        var signingKey = (key as jwksClient.CertSigningKey).publicKey || (key as jwksClient.RsaSigningKey).rsaPublicKey;
         callback(null, signingKey);
     });
 }
@@ -42,7 +42,7 @@ const getSigningKeys = (header, callback) => {
 
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
     context.log('HTTP trigger function processed a request.');
-    const x =  validateJwt(req, context);
+    const x = validateJwt(req, context);
     context.log("validation respose is :" + x);
     const name = (req.query.name || (req.body && req.body.name));
     const responseMessage = name
