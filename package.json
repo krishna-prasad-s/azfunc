@@ -18,6 +18,8 @@
   },
   "dependencies": {
     "@azure/msal-node": "^1.5.0",
+    "@types/jsonwebtoken": "^8.5.6",
+    "azure-function-log-intercept": "^1.0.11",
     "https": "^1.0.0",
     "jsonwebtoken": "^8.5.1",
     "jwks-rsa": "^2.0.5"
