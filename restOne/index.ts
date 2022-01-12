@@ -36,7 +36,6 @@ const getSigningKeys = (header, callback) => {
     client.getSigningKey(header.kid, function (err, key) {
 
         var signingKey = (key as jwksClient.CertSigningKey).publicKey || (key as jwksClient.RsaSigningKey).rsaPublicKey;
-        console.log(signingKey);
         callback(null, signingKey);
     });
 }
@@ -56,9 +55,14 @@ const validateJwt = (req, res) => {
                 console.log(err);
                 return false;//res.sendStatus(403);
             }
-            console.log("payload");
-            console.log("no error from jwt verify");
-            return true;//res.status(200);
+            console.log("Roles :"+payload.roles);
+            payload.roles.forEach(role => {
+                if (role == "test.read") {
+                    console.log("role matched")
+                    return true;
+                }
+            });
+            return false;//res.status(200);
         });
     } else {
         console.log("no auth header");
