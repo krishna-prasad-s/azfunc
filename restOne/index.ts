@@ -6,29 +6,29 @@ import jwksClient = require('jwks-rsa');
 const DISCOVERY_KEYS_ENDPOINT = "https://login.microsoftonline.com/common/discovery/keys";
 
 
-const validateJwt = async (req, context) => {
-    const authHeader = req.headers.authorization;
-    if (authHeader) {
-        const token = authHeader.split(' ')[1];
+// const validateJwt = async (req, context) => {
+//     const authHeader = req.headers.authorization;
+//     if (authHeader) {
+//         const token = authHeader.split(' ')[1];
 
-        const validationOptions = {
-            audience: "api://daas",
-            roles: ["test.read"]
-        }
+//         const validationOptions = {
+//             audience: "api://daas",
+//             roles: ["test.read"]
+//         }
 
-        try {
-                jwt.verify(token, getSigningKeys, validationOptions);
-                return true;
-        } catch (err) {
-            context.log(err);
-            return false;
-        }
-    } else {
-        return false;
-    }
-};
+//         try {
+//                 jwt.verify(token, getSigningKeys, validationOptions);
+//                 return true;
+//         } catch (err) {
+//             context.log(err);
+//             return false;
+//         }
+//     } else {
+//         return false;
+//     }
+// };
 
-const getSigningKeys = (header) => {
+const getSigningKeys = (header, callback) => {
     var client = jwksClient({
         jwksUri: DISCOVERY_KEYS_ENDPOINT
     });
@@ -36,9 +36,36 @@ const getSigningKeys = (header) => {
     client.getSigningKey(header.kid, function (err, key) {
 
         var signingKey = (key as jwksClient.CertSigningKey).publicKey || (key as jwksClient.RsaSigningKey).rsaPublicKey;
-        return signingKey;
+        console.log(signingKey);
+        callback(null, signingKey);
     });
 }
+
+const validateJwt = (req, res) => {
+    const authHeader = req.headers.authorization;
+    if (authHeader) {
+        const token = authHeader.split(' ')[1];
+        const validationOptions = {
+            audience: "api://daas",
+            roles: ["test.error"]
+        }
+
+        jwt.verify(token, getSigningKeys, validationOptions, (err, payload) => {
+            if (err) {
+                console.log("some error from jwt verify");
+                console.log(err);
+                return false;//res.sendStatus(403);
+            }
+            console.log("payload");
+            console.log("no error from jwt verify");
+            return true;//res.status(200);
+        });
+    } else {
+        console.log("no auth header");
+        return false;//res.sendStatus(401);
+    }
+};
+
 
 
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
